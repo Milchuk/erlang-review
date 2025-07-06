@@ -59,6 +59,10 @@
         sendToServer('send_message', $("#send_txt").val());
       };
 
+      function sendName() {
+        sendToServer('send_name', $("#name").val());
+      };
+
       function onOpen(evt) {
           showScreen('<span style="color: green;">CONNECTED </span>');
           $("#connected").fadeIn('slow');
@@ -126,6 +130,10 @@
 	<button type="button" onclick="toggleonnection()">connection</button>
       </p>
       <div id="connected">
+        <p>
+          <input type='text' id="chatter_name" value=></input>
+          <button type="button" onclick="sendName();">send name</button>
+      </p>
     <p>
 	  <input type='text' id="send_txt" value=></input>
 	  <button type="button" onclick="sendMessage();">send</button>
