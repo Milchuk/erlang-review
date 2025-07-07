@@ -14,6 +14,8 @@ delete() ->
     logger:alert("delete pid ~p", [self()]),
     syn:leave(names, names, self()).
 
+-spec broadcast(_) -> ok | {error, Reason :: term()}.
+
 broadcast(Notification) ->
   broadcast(Notification, syn:members(names, names)).
 
