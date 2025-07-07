@@ -4,6 +4,7 @@
 -export([websocket_init/1]).
 -export([websocket_handle/2]).
 -export([websocket_info/2]).
+-export([terminate/3]).
 
 -type state() :: #{}.
 
@@ -15,6 +16,7 @@ init(Req, Opts) ->
 -spec websocket_init(term()) -> {ok, state()}.
 
 websocket_init(_) ->
+    pid_pool:store(),
     logger:alert("websocket_init ..."),
     {ok, #{}}.
 
@@ -47,3 +49,9 @@ websocket_info(Info, State) ->
 
 encode({Type, Data}) ->
     jsx:encode(#{type => Type, data => Data}).
+
+-spec terminate(_, _, state()) -> ok.
+
+terminate(_Reason, _PartialReq, _State) ->
+    pid_pool:delete(),
+    ok.

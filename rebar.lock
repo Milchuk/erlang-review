@@ -3,7 +3,11 @@
  {<<"cowlib">>,{pkg,<<"cowlib">>,<<"2.11.0">>},1},
  {<<"gun">>,{pkg,<<"gun">>,<<"1.3.3">>},0},
  {<<"jsx">>,{pkg,<<"jsx">>,<<"3.1.0">>},0},
- {<<"ranch">>,{pkg,<<"ranch">>,<<"1.8.0">>},1}]}.
+ {<<"ranch">>,{pkg,<<"ranch">>,<<"1.8.0">>},1},
+ {<<"syn">>,
+  {git,"https://github.com/ostinelli/syn.git",
+       {ref,"4b5fbc17e8008af2780af61fbf6966c15036741e"}},
+  0}]}.
 [
 {pkg_hash,[
  {<<"cowboy">>, <<"865DD8B6607E14CF03282E10E934023A1BD8BE6F6BACF921A7E2A96D800CD452">>},
