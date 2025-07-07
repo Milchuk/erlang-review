@@ -27,7 +27,14 @@ start_link() ->
 
 init([]) ->
     ExtPort = 8080,
-    {ok, {#{strategy => one_for_all}, [get_cowboy_child_spec({0, 0, 0, 0}, ExtPort)]}}.
+    Children = [
+        #{
+            id => rand_bot_notifier,
+            start => {rand_bot_notifier, start_link, []}
+        },
+        get_cowboy_child_spec({0, 0, 0, 0}, ExtPort)
+    ],
+    {ok, {#{strategy => one_for_all}, Children}}.
 
 -spec get_cowboy_child_spec(ip(), cowboy_port()) ->
     supervisor:child_spec().
