@@ -27,7 +27,15 @@ websocket_handle({text, Text}, State) ->
     logger:alert("Handle message - ~p", [{Type, Data}]),
     {Reply, NewState} = case {Type, Data} of
         {<<"send_message">>, Message} ->
-            {{new_message, Message}, State};
+            Name = maps:get(name, State, <<"Noname">>),
+            NamedMessage = erlang:iolist_to_binary([Name, <<": ">>, Message]),
+            pid_pool:broadcast(NamedMessage),
+            {{new_message, NamedMessage}, State};
+        {<<"send_name">>, Name} ->
+            JoinedChat = <<" joined chat.">>,
+            Notification = erlang:iolist_to_binary([Name, JoinedChat]),
+            pid_pool:broadcast(Notification),
+            {{new_message, Notification}, maps:put(name, Name, State)};
         Unknown ->
             logger:alert("get unknown message - ~p", [Unknown]),
             {disconnect, State}
@@ -43,6 +51,8 @@ websocket_handle(_Data, State) ->
 websocket_info({'DOWN', _Ref, process, _Pid, Reason}, State) ->
     logger:alert("server down with reason - ~p", [Reason]),
     {reply, {text, encode({service_message, <<"Server down">>})}, State};
+websocket_info({broadcasting, Notification}, State) ->
+    {reply, {text, encode({new_message, Notification})}, State};
 websocket_info(Info, State) ->
     logger:alert("Get unexpected info - ~p", [Info]),
     {ok, State}.
