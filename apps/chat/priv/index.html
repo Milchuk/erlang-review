@@ -10,13 +10,11 @@
       $(document).ready(init);
 
       function init() {
-          $('#server').val("ws://" + window.location.host + "/websocket");
           if(!("WebSocket" in window)){
               $('#status').append('<p><span style="color: red;">websockets are not supported </span></p>');
               $("#navigation").hide();
           } else {
               $('#status').append('<p><span style="color: green;">websockets are supported </span></p>');
-              connect();
           };
               $("#connected").hide();
               $("#content").hide();
@@ -24,13 +22,18 @@
 
       function connect()
       {
-          wsHost = $("#server").val()
+        wsServer = $("#server").val()
+        wsName = $("#send_name").val()
+        if (!(wsServer === "" || wsName === "")) {
+          name = encodeURIComponent(wsName);
+          wsHost = "ws://" + window.location.host + "/websocket" + "?chat=" + wsServer + "&name=" + name;
           websocket = new WebSocket(wsHost);
           showScreen('<b>Connecting to: ' +  wsHost + '</b>');
           websocket.onopen = function(evt) { onOpen(evt) };
           websocket.onclose = function(evt) { onClose(evt) };
           websocket.onmessage = function(evt) { onMessage(evt) };
           websocket.onerror = function(evt) { onError(evt) };
+        }
       };
 
       function disconnect() {
@@ -38,25 +41,24 @@
       };
 
       function toggleonnection(){
-          if(websocket.readyState == websocket.OPEN){
-              disconnect();
+          if (typeof(websocket) === 'undefined'){
+            connect();
           } else {
-              connect();
-          };
+            if(websocket.readyState == websocket.OPEN){
+                disconnect();
+            } else {
+                connect();
+            };
+          }
       };
 
       function sendToServer(type_, data_){
         if(websocket.readyState == websocket.OPEN){
             txt = {type: type_, data: data_};
             websocket.send(JSON.stringify(txt));
-            // showScreen('sending: ' + JSON.stringify(txt));
         } else {
             showScreen('websocket is not connected');
         };
-      };
-
-      function sendName() {
-        sendToServer('send_name', $("#send_name").val());
       };
 
       function sendMessage() {
@@ -126,22 +128,22 @@
     <div id="navigation">
 
       <p id="connecting">
-	<input type='text' id="server" value=""></input>
-	<button type="button" onclick="toggleonnection()">connection</button>
+	      <input type='text' id="server" value=""></input>
+	      <button type="button" onclick="toggleonnection()">connection</button>
+      </p>
+      <p id="name_pointer">
+        <div>Enter name:</div>
+        <input type='text' id="send_name" value=></input>
       </p>
       <div id="connected">
         <p>
-          <input type='text' id="send_name" value=></input>
-          <button type="button" onclick="sendName();">send name</button>
-      </p>
-    <p>
-	  <input type='text' id="send_txt" value=></input>
-	  <button type="button" onclick="sendMessage();">send</button>
-	</p>
+	        <input type='text' id="send_txt" value=></input>
+	        <button type="button" onclick="sendMessage();">send</button>
+	      </p>
       </div>
       <div id="content">
-	<button id="clear" onclick="clearScreen()" >Clear text</button>
-	<div id="output"></div>
+        <button id="clear" onclick="clearScreen()" >Clear text</button>
+        <div id="output"></div>
       </div>
     </div>
   </body>

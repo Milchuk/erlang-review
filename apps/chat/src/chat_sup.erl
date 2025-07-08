@@ -28,13 +28,9 @@ start_link() ->
 init([]) ->
     ExtPort = 8080,
     Children = [
-        #{
-            id => rand_bot_notifier,
-            start => {rand_bot_notifier, start_link, []}
-        },
         get_cowboy_child_spec({0, 0, 0, 0}, ExtPort)
     ],
-    {ok, {#{strategy => one_for_all}, Children}}.
+    {ok, {#{strategy => one_for_one}, Children}}.
 
 -spec get_cowboy_child_spec(ip(), cowboy_port()) ->
     supervisor:child_spec().
@@ -43,7 +39,7 @@ get_cowboy_child_spec(IP, Port) ->
     Dispatch = cowboy_router:compile([
         {'_', [
             {"/", cowboy_static, {priv_file, chat, "index.html"}},
-            {"/websocket", web_handler, []},
+            {"/websocket/[...]", web_handler, []},
             {"/static/[...]", cowboy_static, {priv_dir, chat, "static"}}
         ]}
     ]),

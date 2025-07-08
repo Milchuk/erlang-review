@@ -2,26 +2,26 @@
 
 -behaviour(gen_server).
 
--export([start_link/0]).
+-export([start_link/1]).
 -export([init/1]).
 -export([handle_call/3]).
 -export([handle_cast/2]).
 -export([handle_info/2]).
 
--spec start_link() ->
+-spec start_link(_) ->
     {ok, pid()}.
 
-start_link() ->
-  gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+start_link(Chat) ->
+  gen_server:start_link(?MODULE, [Chat], []).
 
--spec init([]) -> {ok, #{}}.
+-spec init([_]) -> {ok, #{}}.
 
-init([]) ->
+init([Chat]) ->
   timer:send_after(3000, spam_time),
-  {ok, #{}}.
+  {ok, #{chat => Chat}}.
 
-handle_info(spam_time, State) ->
-  pid_pool:broadcast(<<"Aviasales. The cheapest air tickets!">>),
+handle_info(spam_time, #{chat := Chat} = State) ->
+  pid_pool:broadcast(State, <<<<"Aviasales. The cheapest air tickets for chat ">>/binary, Chat/binary, <<"!">>/binary>>),
   RandomTime = rand:uniform(5001) + 2999,
   timer:send_after(RandomTime, spam_time),
   {noreply, State};

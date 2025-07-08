@@ -10,15 +10,32 @@
 
 -spec init(_, _) -> {cowboy_websocket, _, _}.
 
-init(Req, Opts) ->
-    {cowboy_websocket, Req, Opts}.
+init(Req, _Opts) ->
+    Qs = cowboy_req:parse_qs(Req),
+    Name = proplists:get_value(<<"name">>, Qs, <<"no_name">>), % значение по умолчанию
+    Chat = proplists:get_value(<<"chat">>, Qs, <<"no_chat">>),   % значение по умолчанию
+    {cowboy_websocket, Req, #{chat => Chat, name => Name}}.
 
 -spec websocket_init(term()) -> {ok, state()}.
 
-websocket_init(_) ->
-    pid_pool:store(),
-    logger:alert("websocket_init ..."),
-    {ok, #{}}.
+websocket_init(#{chat := Chat, name := Name} = State) ->
+    case pid_pool:check_name(Chat, Name) of
+        true -> 
+            {stop, name_in_use};
+        false ->
+            pid_pool:store(State),
+            logger:alert("websocket_init in Chat = ~p with Name = ~p", [Chat, Name]),
+            case syn:member_count(bot, Chat) of
+                0 ->
+                    {ok, BotPid} = rand_bot_notifier:start_link(Chat),
+                    syn:join(bot, Chat, BotPid),
+                    logger:alert("bot_init in Chat ~p ", [Chat]);
+                1 ->
+                    logger:alert("bot already init in Chat ~p ", [Chat])
+            end,
+            {ok, State}
+    end.
+    
 
 -spec websocket_handle(_, state()) -> {reply, _, state()} | {ok, state()}.
 
@@ -29,13 +46,13 @@ websocket_handle({text, Text}, State) ->
         {<<"send_message">>, Message} ->
             Name = maps:get(name, State, <<"Noname">>),
             NamedMessage = erlang:iolist_to_binary([Name, <<": ">>, Message]),
-            pid_pool:broadcast(NamedMessage),
+            pid_pool:broadcast(State, NamedMessage),
             {{new_message, NamedMessage}, State};
-        {<<"send_name">>, Name} ->
-            JoinedChat = <<" joined chat.">>,
-            Notification = erlang:iolist_to_binary([Name, JoinedChat]),
-            pid_pool:broadcast(Notification),
-            {{new_message, Notification}, maps:put(name, Name, State)};
+        % {<<"send_name">>, Name} ->
+        %     JoinedChat = <<" joined chat.">>,
+        %     Notification = erlang:iolist_to_binary([Name, JoinedChat]),
+        %     pid_pool:broadcast(Notification),
+        %     {{new_message, Notification}, maps:put(name, Name, State)};
         Unknown ->
             logger:alert("get unknown message - ~p", [Unknown]),
             {disconnect, State}
@@ -62,6 +79,6 @@ encode({Type, Data}) ->
 
 -spec terminate(_, _, state()) -> ok.
 
-terminate(_Reason, _PartialReq, _State) ->
-    pid_pool:delete(),
+terminate(_Reason, _PartialReq, State) ->
+    pid_pool:delete(State),
     ok.
