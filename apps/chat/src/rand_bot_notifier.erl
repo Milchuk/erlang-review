@@ -21,7 +21,7 @@ init([Chat]) ->
   {ok, #{chat => Chat}}.
 
 handle_info(spam_time, #{chat := Chat} = State) ->
-  pid_pool:broadcast(State, <<<<"Aviasales. The cheapest air tickets for chat ">>/binary, Chat/binary, <<"!">>/binary>>),
+  pid_pool:broadcast_message(State, <<<<"Aviasales. The cheapest air tickets for chat ">>/binary, Chat/binary, <<"!">>/binary>>),
   RandomTime = rand:uniform(5001) + 2999,
   timer:send_after(RandomTime, spam_time),
   {noreply, State};

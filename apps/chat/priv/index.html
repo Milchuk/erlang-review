@@ -94,6 +94,9 @@
             case 'new_message':
               showScreen('<span style="color: blue;">' + Result.data + '</span>');
               break;
+            case 'new_member':
+              showScreen('<span style="color: pink;">' + Result.data + '</span>');
+              break;
             default :
               printError('unknown message type - ' + Result.type);
         }

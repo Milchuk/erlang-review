@@ -1,6 +1,6 @@
 -module(pid_pool).
 
--export([store/1, delete/1, check_name/2, broadcast/2]).
+-export([store/1, delete/1, check_name/2, broadcast_message/2, broadcast_new_member/1]).
 
 -spec store(#{chat := _, name := _}) -> ok | {error, Reason :: term()}.
 
@@ -28,18 +28,34 @@ process_check(Name, [{_, _Target} | Tail]) ->
 process_check(_, []) ->
     false.
 
--spec broadcast(#{chat := _, name := _}, _) -> ok | {error, Reason :: term()}.
+-spec broadcast_message(#{chat := _, name := _}, _) -> ok | {error, Reason :: term()}.
 
-broadcast(#{chat := Chat} = __State, Notification) ->
-    process_broadcast(Notification, syn:members(pids, Chat)).
+broadcast_message(#{chat := Chat} = __State, Notification) ->
+    process_broadcast_message(Notification, syn:members(pids, Chat)).
 
-process_broadcast(Notification, [{Pid, _} | Tail]) when Pid == self() ->
-    process_broadcast(Notification, Tail);
+process_broadcast_message(Notification, [{Pid, _} | Tail]) when Pid == self() ->
+    process_broadcast_message(Notification, Tail);
 
-process_broadcast(Notification, [{Pid, _} | Tail]) ->
+process_broadcast_message(Notification, [{Pid, _} | Tail]) ->
   logger:alert("broadcasting to ~p", [Pid]),
-  Pid ! {broadcasting, Notification},
-  process_broadcast(Notification, Tail);
+  Pid ! {broadcasting_message, Notification},
+  process_broadcast_message(Notification, Tail);
 
-process_broadcast(_Notification, []) ->
+process_broadcast_message(_Notification, []) ->
   ok.
+
+-spec broadcast_new_member(#{chat := _, name := _}) -> ok | {error, Reason :: term()}.
+
+broadcast_new_member(#{chat := Chat, name := Name} = __State) ->
+    process_broadcast_new_member(Name, syn:members(pids, Chat)).
+  
+process_broadcast_new_member(Name, [{Pid, _} | Tail]) when Pid == self() ->
+    process_broadcast_new_member(Name, Tail);
+  
+process_broadcast_new_member(Name, [{Pid, _} | Tail]) ->
+    logger:alert("broadcasting new member to ~p", [Pid]),
+    Pid ! {broadcasting_new_member, <<Name/binary, <<" just joined chat!">>/binary>>},
+    process_broadcast_new_member(Name, Tail);
+  
+process_broadcast_new_member(_Notification, []) ->
+    ok.
