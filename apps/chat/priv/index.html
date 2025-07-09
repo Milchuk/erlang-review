@@ -72,7 +72,9 @@
       };
 
       function onClose(evt) {
-          showScreen('<span style="color: red;">DISCONNECTED </span>');
+        clearScreen();
+        clearMembers();
+        showScreen('<span style="color: red;">DISCONNECTED </span>');
       };
 
       function onMessage(evt)
@@ -96,9 +98,14 @@
               break;
             case 'new_member':
               showScreen('<span style="color: pink;">' + Result.data + ' just joined the chat!' + '</span>');
+              showMembers('<span style="color: red;">' + Result.data + '</span>')
               break;
             case 'delete_member':
               showScreen('<span style="color: pink;">' + Result.data + ' just left the chat!' + '</span>');
+              clearMembers();
+              break;
+            case 'update_member':
+              showMembers('<span style="color: red;">' + Result.data + '</span>');
               break;
             default :
               printError('unknown message type - ' + Result.type);
@@ -117,9 +124,18 @@
           $('#output').prepend('<p>' + txt + '</p>');
       };
 
+      function showMembers(txt) {
+          $('#output2').prepend('<p>' + txt + '</p>');
+      };
+
       function clearScreen()
       {
           $('#output').html("");
+      };
+
+      function clearMembers()
+      {
+          $('#output2').html("");
       };
     </script>
   </head>
@@ -149,7 +165,20 @@
       </div>
       <div id="content">
         <button id="clear" onclick="clearScreen()" >Clear text</button>
-        <div id="output"></div>
+        <table border="0" width="100%">
+          <tr>
+              <td width="50%" valign="top">
+                  <fieldset>
+                      <div id="output"></div>
+                  </fieldset>
+              </td>
+              <td width="50%" valign="top">
+                  <fieldset>
+                      <div id="output2"></div>
+                  </fieldset>
+              </td>
+          </tr>
+        </table>
       </div>
     </div>
   </body>

@@ -25,6 +25,7 @@ websocket_init(#{chat := Chat, name := Name} = State) ->
         false ->
             pid_pool:store(State),
             pid_pool:broadcast_new_member(State),
+            pid_pool:send_members_self(State),
             logger:alert("websocket_init in Chat = ~p with Name = ~p", [Chat, Name]),
             case syn:member_count(bot, Chat) of
                 0 ->
@@ -69,6 +70,8 @@ websocket_info({broadcasting_new_member, Notification}, State) ->
     {reply, {text, encode({new_member, Notification})}, State};
 websocket_info({broadcasting_delete_member, Notification}, State) ->
     {reply, {text, encode({delete_member, Notification})}, State};
+websocket_info({update_member, Notification}, State) ->
+    {reply, {text, encode({update_member, Notification})}, State};
 websocket_info(Info, State) ->
     logger:alert("Get unexpected info - ~p", [Info]),
     {ok, State}.
@@ -81,4 +84,5 @@ encode({Type, Data}) ->
 terminate(_Reason, _PartialReq, State) ->
     pid_pool:broadcast_delete_member(State),
     pid_pool:delete(State),
+    pid_pool:send_members(State),
     ok.
