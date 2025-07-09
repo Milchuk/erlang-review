@@ -95,7 +95,10 @@
               showScreen('<span style="color: blue;">' + Result.data + '</span>');
               break;
             case 'new_member':
-              showScreen('<span style="color: pink;">' + Result.data + '</span>');
+              showScreen('<span style="color: pink;">' + Result.data + ' just joined the chat!' + '</span>');
+              break;
+            case 'delete_member':
+              showScreen('<span style="color: pink;">' + Result.data + ' just left the chat!' + '</span>');
               break;
             default :
               printError('unknown message type - ' + Result.type);

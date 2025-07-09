@@ -67,6 +67,8 @@ websocket_info({broadcasting_message, Notification}, State) ->
     {reply, {text, encode({new_message, Notification})}, State};
 websocket_info({broadcasting_new_member, Notification}, State) ->
     {reply, {text, encode({new_member, Notification})}, State};
+websocket_info({broadcasting_delete_member, Notification}, State) ->
+    {reply, {text, encode({delete_member, Notification})}, State};
 websocket_info(Info, State) ->
     logger:alert("Get unexpected info - ~p", [Info]),
     {ok, State}.
@@ -77,5 +79,6 @@ encode({Type, Data}) ->
 -spec terminate(_, _, state()) -> ok.
 
 terminate(_Reason, _PartialReq, State) ->
+    pid_pool:broadcast_delete_member(State),
     pid_pool:delete(State),
     ok.
