@@ -7,10 +7,11 @@
    [kernel,
     stdlib,
     cowboy,
-    jsx
+    jsx,
+    syn
    ]},
   {env,[]},
-  {modules, [chat_app, chat_sup, web_handler, chat]},
+  {modules, [chat_app, chat_sup, web_handler, pid_pool, rand_bot_notifier, chat]},
   {maintainers, []},
   {licenses, ["Apache 2.0"]},
   {links, []}
